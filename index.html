@@ -71,7 +71,14 @@ main{padding-block:20px 40px;display:grid;gap:20px}
 .msg{border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px}
 .msg.ok{background:var(--okbg);color:var(--okink)}
 .msg.err{background:var(--errbg);color:var(--errink)}
-details{margin-top:14px;font-size:14px}
+#rawbox{margin-top:16px;display:grid;gap:8px}
+.lines-label{margin:0}
+.lines{display:flex;flex-direction:column;gap:6px}
+.lines button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;font-size:15px;line-height:1.3;word-break:break-word}
+.lines button:active{background:var(--okbg)}
+.lines button.used{border-color:var(--okink)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);min-height:44px;font-weight:600;font-size:15px}
+.f input.target,.f textarea.target{outline:2px solid var(--focus);outline-offset:1px}
 summary{cursor:pointer;color:var(--mute);font-weight:600}
 pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0 0;font:13px/1.45 ui-monospace,Menlo,monospace;max-height:260px;overflow:auto}
 
@@ -88,7 +95,6 @@ legend{padding:0;margin-bottom:10px}
 .f input:placeholder-shown,.f textarea:placeholder-shown{border-style:dashed}
 .save{display:grid;gap:10px;position:sticky;bottom:0;background:var(--paper);padding:12px 0 calc(4px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:4px}
 .save .btn-main{flex:none;width:100%;background:var(--band);color:var(--bandink)}
-.save .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);min-height:44px;font-weight:600;font-size:15px}
 .hint{font-size:13px;color:var(--mute);margin:0}
 .foot{font-size:13px;color:var(--mute);padding-bottom:max(24px,env(safe-area-inset-bottom))}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -122,10 +128,12 @@ legend{padding:0;margin-bottom:10px}
     <div class="status" id="status" aria-live="polite">Die Texterkennung läuft direkt auf dem Handy.</div>
     <div class="bar" id="bar" hidden><b id="barfill"></b></div>
     <div id="msg"></div>
-    <details id="rawbox" hidden>
-      <summary>Erkannter Text</summary>
-      <pre id="raw"></pre>
-    </details>
+    <div id="rawbox" hidden>
+      <p class="label lines-label">Erkannter Text</p>
+      <p class="hint">Feld im Formular antippen, dann hier die passende Zeile. Sie wird in das Feld übernommen.</p>
+      <div class="lines" id="lines"></div>
+      <button class="btn btn-ghost rot" type="button" id="rotate">Foto drehen und neu lesen</button>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="l-form">
@@ -222,6 +230,18 @@ legend{padding:0;margin-bottom:10px}
     });
   }
 
+  function rotate(src, deg) {
+    const c = document.createElement('canvas');
+    const q = deg % 180 !== 0;
+    c.width = q ? src.height : src.width;
+    c.height = q ? src.width : src.height;
+    const ctx = c.getContext('2d');
+    ctx.translate(c.width / 2, c.height / 2);
+    ctx.rotate(deg * Math.PI / 180);
+    ctx.drawImage(src, -src.width / 2, -src.height / 2);
+    return c;
+  }
+
   function toCanvas(img, maxSide, gray) {
     const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
     const up = Math.max(img.naturalWidth, img.naturalHeight) < 1200 ? 1600 / Math.max(img.naturalWidth, img.naturalHeight) : 1;
@@ -234,10 +254,20 @@ legend{padding:0;margin-bottom:10px}
     if (gray) {
       const d = ctx.getImageData(0, 0, c.width, c.height);
       const p = d.data;
-      // Graustufen und leichte Kontrastanhebung
+      // Graustufen, dann Helligkeit auf den vollen Bereich strecken (dunkle Fotos, farbige Karten)
+      const hist = new Uint32Array(256);
       for (let i = 0; i < p.length; i += 4) {
-        let v = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
-        v = Math.max(0, Math.min(255, (v - 128) * 1.35 + 128));
+        const v = (0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2]) | 0;
+        p[i] = v; hist[v]++;
+      }
+      const n = p.length / 4;
+      let lo = 0, hi = 255, acc = 0;
+      while (lo < 255 && (acc += hist[lo]) < n * 0.01) lo++;
+      acc = 0;
+      while (hi > 0 && (acc += hist[hi]) < n * 0.01) hi--;
+      const span = Math.max(40, hi - lo);
+      for (let i = 0; i < p.length; i += 4) {
+        const v = Math.max(0, Math.min(255, (p[i] - lo) * 255 / span));
         p[i] = p[i + 1] = p[i + 2] = v;
       }
       ctx.putImageData(d, 0, 0);
@@ -262,11 +292,65 @@ legend{padding:0;margin-bottom:10px}
     setStatus('Lade Texterkennung …', 0.02);
     worker = await Tesseract.createWorker(['deu', 'eng'], 1, {
       logger: m => {
-        if (m.status === 'recognizing text') setStatus('Lese Text … ' + Math.round(m.progress * 100) + ' %', 0.2 + m.progress * 0.8);
+        if (m.status === 'recognizing text') setStatus('Lese Text' + phase + ' … ' + Math.round(m.progress * 100) + ' %', 0.2 + m.progress * 0.8);
         else if (/load/.test(m.status)) setStatus('Lade Sprachdaten …', 0.05 + (m.progress || 0) * 0.15);
       }
     });
     return worker;
+  }
+
+  let lastImg = null, lastRot = 0, phase = '';
+  let target = null;
+
+  // Liest den Text; liegt die Karte quer im Foto, werden die anderen Ausrichtungen probiert
+  async function ocr(img, order) {
+    const w = await getWorker();
+    const base = toCanvas(img, 2400, true);
+    let best = null;
+    for (const deg of order) {
+      phase = deg ? ' (gedreht)' : '';
+      const { data } = await w.recognize(deg ? rotate(base, deg) : base);
+      const words = (data.text.match(/[A-Za-zÄÖÜäöüß@]{3,}/g) || []).length;
+      const score = data.confidence + Math.min(words, 15);
+      if (!best || score > best.score) best = { score, text: (data.text || '').trim(), deg, conf: data.confidence };
+      if (data.confidence >= 72 && words >= 4) break;
+    }
+    phase = '';
+    return best;
+  }
+
+  function showLines(text) {
+    const box = $('lines');
+    box.innerHTML = '';
+    text.split(/\n/).map(l => l.trim()).filter(l => l.length > 1).forEach(l => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = l;
+      b.addEventListener('click', () => {
+        const el = target || $('note');
+        el.value = el.id === 'note' && el.value ? el.value + '\n' + l : l;
+        b.classList.add('used');
+        el.classList.add('target');
+      });
+      box.appendChild(b);
+    });
+    $('rawbox').hidden = false;
+  }
+
+  function apply(text, qr) {
+    showLines(text || '(kein Text erkannt)');
+    if (!text) {
+      setStatus('Kein Text erkannt.');
+      showMsg('Auf dem Foto war kein Text lesbar. Bitte näher ran, gerade halten und auf gutes Licht achten.', 'err');
+      return;
+    }
+    const parsed = VK.parse(text);
+    if (qr && /^https?:\/\//i.test(qr) && !parsed.url) parsed.url = qr;
+    fill(parsed);
+    const found = ['first', 'last', 'email', 'cell', 'work', 'org', 'street'].filter(k => parsed[k]).length;
+    setStatus('Fertig. Bitte die Felder kurz prüfen.');
+    showMsg(found >= 3 ? 'Angaben übernommen. Falsche Felder korrigieren oder unten eine erkannte Zeile antippen.' :
+      'Nur wenige Angaben erkannt. Unten steht alles, was gelesen wurde: Feld antippen, dann die passende Zeile.', found >= 3 ? 'ok' : 'err');
   }
 
   async function handle(file) {
@@ -275,6 +359,7 @@ legend{padding:0;margin-bottom:10px}
     showMsg('');
     try {
       const { img, url } = await loadImage(file);
+      lastImg = img;
       $('img').src = url;
       $('img').hidden = false;
       $('empty').hidden = true;
@@ -283,31 +368,15 @@ legend{padding:0;margin-bottom:10px}
       const qr = findQR(img);
       if (qr && /BEGIN:VCARD/i.test(qr)) {
         fill(VK.parseVCard(qr));
-        $('raw').textContent = qr;
-        $('rawbox').hidden = false;
+        showLines(qr.replace(/\r/g, ''));
         setStatus('QR-Code mit Kontaktdaten gelesen.');
         showMsg('Alle Angaben stammen aus dem QR-Code. Jetzt nur noch speichern.', 'ok');
         return;
       }
 
-      const w = await getWorker();
-      const canvas = toCanvas(img, 2400, true);
-      const { data } = await w.recognize(canvas);
-      const text = (data.text || '').trim();
-      $('raw').textContent = text || '(kein Text erkannt)';
-      $('rawbox').hidden = false;
-      if (!text) {
-        setStatus('Kein Text erkannt.');
-        showMsg('Auf dem Foto war kein Text lesbar. Bitte näher ran, gerade halten und auf gutes Licht achten.', 'err');
-        return;
-      }
-      const parsed = VK.parse(text);
-      if (qr && /^https?:\/\//i.test(qr) && !parsed.url) parsed.url = qr;
-      fill(parsed);
-      const found = ['first', 'last', 'email', 'cell', 'work', 'org'].filter(k => parsed[k]).length;
-      setStatus('Fertig. Bitte die Felder kurz prüfen.');
-      showMsg(found >= 3 ? 'Angaben übernommen. Fehler direkt im Formular korrigieren.' :
-        'Nur wenige Angaben erkannt. Unter „Erkannter Text“ steht alles, was gelesen wurde.', found >= 3 ? 'ok' : 'err');
+      const best = await ocr(img, [0, 90, 270, 180]);
+      lastRot = best.deg;
+      apply(best.text, qr);
     } catch (e) {
       setStatus('');
       showMsg(e.message || String(e), 'err');
@@ -315,6 +384,28 @@ legend{padding:0;margin-bottom:10px}
       busy = false;
     }
   }
+
+  $('rotate').addEventListener('click', async () => {
+    if (!lastImg || busy) return;
+    busy = true;
+    showMsg('');
+    try {
+      lastRot = (lastRot + 90) % 360;
+      const best = await ocr(lastImg, [lastRot]);
+      apply(best.text, null);
+    } catch (e) {
+      setStatus('');
+      showMsg(e.message || String(e), 'err');
+    } finally {
+      busy = false;
+    }
+  });
+
+  FIELDS.forEach(k => $(k).addEventListener('focus', () => {
+    if (target) target.classList.remove('target');
+    target = $(k);
+    target.classList.add('target');
+  }));
 
   ['cam', 'pick'].forEach(id => $(id).addEventListener('change', e => {
     handle(e.target.files && e.target.files[0]);
@@ -341,10 +432,30 @@ legend{padding:0;margin-bottom:10px}
   $('form').addEventListener('submit', e => {
     e.preventDefault();
     if (!check()) return;
-    const { text } = vcardFile();
-    // Safari auf dem iPhone öffnet eine vCard als Kontaktvorschau mit „Neuen Kontakt erstellen“.
-    location.href = 'data:text/vcard;charset=utf-8,' + encodeURIComponent(text);
+    openContact();
   });
+
+  // Safari zeigt eine .vcf-Adresse als Kontaktvorschau mit „Neuen Kontakt erstellen“.
+  // Die Datei liefert der Service Worker (sw.js) aus dem Cache, mit Dateityp text/vcard.
+  async function openContact() {
+    const { text } = vcardFile();
+    const url = new URL('kontakt.vcf', location.href);
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller && window.caches) {
+        const c = await caches.open('visit-vcard');
+        await c.put(url.href, new Response(text, { headers: {
+          'Content-Type': 'text/vcard; charset=utf-8',
+          'Content-Disposition': 'inline; filename="kontakt.vcf"' } }));
+        location.href = url.href + '?t=' + Date.now();
+        return;
+      }
+    } catch (e) { /* weiter mit dem Ersatzweg */ }
+    location.href = 'data:text/x-vcard;charset=utf-8,' + encodeURIComponent(text);
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
   $('share').addEventListener('click', async () => {
     if (!check()) return;

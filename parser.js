@@ -19,7 +19,8 @@
   }
 
   function cleanLine(l) {
-    return l.replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d\u201e]/g, '"')
+    return l.replace(/([Ss])tra[B8]e/g, '$1traße').replace(/([Ss])tra[B8]\b/g, '$1traß')
+      .replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d\u201e]/g, '"')
       .replace(/\s+@\s+|\s+@|@\s+/g, '@')
       .replace(/^[\s|•·*_~»«<>=\-–—]+|[\s|•·*_~»«<>=]+$/g, '')
       .replace(/\s{2,}/g, '  ').trim();
@@ -75,13 +76,16 @@
     for (const g of segs) {
       if (g.email) continue;
       const re = /(\+|00)?\s?\(?\d[\d\s\/().\-]{4,}\d/g;
+      // typische Lesefehler in Nummern: O statt 0, l/I/| statt 1
+      const line = g.s.replace(/(?<=\d)[Oo]|[Oo](?=\d)/g, '0').replace(/(?<=\d)[Oo]|[Oo](?=\d)/g, '0')
+        .replace(/(?<=\d)[lI|](?=\d)|(?<=\s)[lI|](?=\d{2})/g, '1');
       let m, hit = false;
-      while ((m = re.exec(g.s))) {
+      while ((m = re.exec(line))) {
         const digits = m[0].replace(/\D/g, '');
         if (digits.length < 6 || digits.length > 16) continue;
         // PLZ + Ort nicht als Telefonnummer werten
         if (/^\d{4,5}$/.test(m[0].trim())) continue;
-        const kind = phoneLabel(g.s.slice(0, m.index), m[0]);
+        const kind = phoneLabel(line.slice(0, m.index), m[0]);
         const num = tidyPhone(m[0]);
         if (!out[kind]) out[kind] = num;
         else if (kind === 'work' && !out.cell && isMobileNumber(num)) out.cell = num;
