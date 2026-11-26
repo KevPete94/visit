@@ -1,9 +1,10 @@
 // Offline-Unterstützung und Auslieferung der Kontaktdatei.
 // kontakt.vcf wird von der Seite in den Cache gelegt und hier mit dem richtigen Dateityp ausgeliefert,
 // damit Safari die Kontaktvorschau zeigt statt die Datei herunterzuladen.
-const CACHE = 'visit-v2';
+const CACHE = 'visit-v3';
 const VCARD = 'visit-vcard';
-const SHELL = ['./', 'index.html', 'parser.js', 'manifest.webmanifest', 'icon-192.png', 'apple-touch-icon.png'];
+const SHELL = ['./', 'index.html', 'parser.js', 'online.js', 'data/namen.json', 'data/plz.json',
+  'vendor/libphonenumber-max.js', 'manifest.webmanifest', 'icon-192.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -17,40 +17,46 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
 <style>
-/* LAYOUT one column on the phone: green band with the camera button, the card photo, then the contact form; wider screens put photo and form side by side.
-   COLOUR deep fir green band, card-stock paper, ink, a mustard "add" accent */
+/* LAYOUT one column on the phone: green band with the camera button, the card photo, the contact form, then "Lernen & Prüfen";
+   wider screens put photo and form side by side. The camera opens full screen with a card-shaped frame.
+   COLOUR deep fir green band, card-stock paper, ink, a mustard "add" accent; green = geprüft, amber = bitte prüfen */
 :root{
   --bg:#f3f2ec; --paper:#fffefa; --ink:#15171c; --mute:#5d625c; --line:#dddbd1;
   --band:#1d5c4f; --bandink:#f6f4ee; --accent:#e8a33d; --accentink:#15171c;
   --focus:#1d5c4f; --okbg:#e2efe9; --okink:#1d5c4f; --errbg:#fbe4df; --errink:#9b2414;
+  --warnbg:#fbefd5; --warnink:#7a4b00;
   --display:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
   --text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#111412; --paper:#1a1e1c; --ink:#eef0ec; --mute:#a3aaa4; --line:#2c3330;
   --band:#163f37; --bandink:#eef0ec; --accent:#efb457; --accentink:#15171c;
-  --focus:#7fc4b2; --okbg:#173029; --okink:#9fd9c7; --errbg:#3b1a14; --errink:#ffb3a5; color-scheme:dark}}
+  --focus:#7fc4b2; --okbg:#173029; --okink:#9fd9c7; --errbg:#3b1a14; --errink:#ffb3a5;
+  --warnbg:#3a2c12; --warnink:#f3c97a; color-scheme:dark}}
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--text);overflow-x:clip}
+body.noscroll{overflow:hidden}
 button,input,textarea{font:inherit;color:inherit}
 button{-webkit-tap-highlight-color:transparent;cursor:pointer}
 .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .top{background:var(--band);color:var(--bandink);padding:max(22px,calc(env(safe-area-inset-top) + 10px)) 0 22px}
 h1{font:800 30px/1.05 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h2{font:700 18px/1.2 var(--display);margin:0}
 .sub{margin:6px 0 18px;opacity:.85;font-size:15px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border-radius:14px;border:0;font-weight:700;font-size:16px;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border-radius:14px;border:0;font-weight:700;font-size:16px;text-decoration:none;cursor:pointer}
 .btn svg{width:22px;height:22px;flex:none}
 .btn-main{background:var(--accent);color:var(--accentink);flex:1 1 200px}
 .btn-line{background:transparent;color:var(--bandink);border:2px solid currentColor;flex:0 1 auto}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);min-height:44px;font-weight:600;font-size:15px}
 .btn:active{transform:translateY(1px)}
-.btn:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,.link:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .top .btn:focus-visible{outline-color:var(--accent)}
 input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 
-main{padding-block:20px 40px;display:grid;gap:20px}
+main{padding-block:20px 20px;display:grid;gap:20px}
 @media (min-width:760px){main{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
 .label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
@@ -77,10 +83,14 @@ main{padding-block:20px 40px;display:grid;gap:20px}
 .lines button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;font-size:15px;line-height:1.3;word-break:break-word}
 .lines button:active{background:var(--okbg)}
 .lines button.used{border-color:var(--okink)}
-.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);min-height:44px;font-weight:600;font-size:15px}
-.f input.target,.f textarea.target{outline:2px solid var(--focus);outline-offset:1px}
-summary{cursor:pointer;color:var(--mute);font-weight:600}
-pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0 0;font:13px/1.45 ui-monospace,Menlo,monospace;max-height:260px;overflow:auto}
+
+.notes{display:grid;gap:6px}
+.notes:empty{display:none}
+.note{font-size:14px;border-radius:10px;padding:8px 12px;margin:0;background:var(--bg);color:var(--mute)}
+.note.ok{background:var(--okbg);color:var(--okink)}
+.note.err{background:var(--errbg);color:var(--errink)}
+.note.busy::after{content:"";display:inline-block;width:10px;height:10px;margin-left:8px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-1px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 form{display:grid;gap:18px}
 fieldset{border:0;margin:0;padding:0;display:grid;gap:10px}
@@ -89,15 +99,58 @@ legend{padding:0;margin-bottom:10px}
 .row.zip{grid-template-columns:7rem 1fr}
 @media (max-width:520px){.row.tel{grid-template-columns:1fr}}
 .f{display:grid;gap:4px}
-.f span{font-size:13px;color:var(--mute);font-weight:600}
+.f > span{font-size:13px;color:var(--mute);font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .f input,.f textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:11px 12px;font-size:16px}
 .f textarea{min-height:64px;resize:vertical}
 .f input:placeholder-shown,.f textarea:placeholder-shown{border-style:dashed}
+.f input.target,.f textarea.target{outline:2px solid var(--focus);outline-offset:1px}
+.tag{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 7px;border-radius:6px}
+.tag:empty{display:none}
+.tag.ok{background:var(--okbg);color:var(--okink)}
+.tag.check{background:var(--warnbg);color:var(--warnink)}
+.f input.check{border-color:var(--warnink)}
 .save{display:grid;gap:10px;position:sticky;bottom:0;background:var(--paper);padding:12px 0 calc(4px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:4px}
 .save .btn-main{flex:none;width:100%;background:var(--band);color:var(--bandink)}
 .hint{font-size:13px;color:var(--mute);margin:0}
-.foot{font-size:13px;color:var(--mute);padding-bottom:max(24px,env(safe-area-inset-bottom))}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Lernen & Prüfen */
+.learn{margin-bottom:20px}
+.setgrid{display:grid;gap:22px}
+@media (min-width:760px){.setgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.set{display:grid;gap:10px;align-content:start}
+.steps{margin:0;padding-left:20px;font-size:14px;color:var(--mute);display:grid;gap:2px}
+.link{background:none;border:0;padding:0;color:var(--mute);text-decoration:underline;font-size:13px;justify-self:start;min-height:32px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.check input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--band)}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg label{position:relative;flex:1;text-align:center;font-size:14px;font-weight:600;padding:10px 6px;cursor:pointer;color:var(--mute)}
+.seg label + label{border-left:1px solid var(--line)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--band);color:var(--bandink)}
+.seg label:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:-3px}
+.foot{font-size:13px;color:var(--mute);padding-bottom:max(24px,env(safe-area-inset-bottom));display:grid;gap:6px}
+.foot p{margin:0}
+
+/* Kamera mit Rahmen für die Karte */
+.cam{position:fixed;inset:0;z-index:50;background:#000;color:#fff;overflow:hidden}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-frame{position:absolute;border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.55);outline:2px solid rgba(255,255,255,.8)}
+.cam-frame::before,.cam-frame::after,.cam-frame i::before,.cam-frame i::after{content:"";position:absolute;width:30px;height:30px;border:0 solid var(--accent)}
+.cam-frame::before{top:-4px;left:-4px;border-top-width:5px;border-left-width:5px;border-top-left-radius:16px}
+.cam-frame::after{top:-4px;right:-4px;border-top-width:5px;border-right-width:5px;border-top-right-radius:16px}
+.cam-frame i::before{bottom:-4px;left:-4px;border-bottom-width:5px;border-left-width:5px;border-bottom-left-radius:16px}
+.cam-frame i::after{bottom:-4px;right:-4px;border-bottom-width:5px;border-right-width:5px;border-bottom-right-radius:16px}
+.cam-hint{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top, 0px) + 16px);margin:0;text-align:center;font-weight:600;font-size:16px;padding:0 max(24px,env(safe-area-inset-left));text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.cam-sys{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--accent);color:var(--accentink)}
+.cam-bar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
+  padding:16px max(16px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px,env(safe-area-inset-left))}
+.cam-btn{background:rgba(0,0,0,.35);border:0;color:#fff;font-weight:700;font-size:15px;min-height:44px;padding:0 14px;border-radius:12px;justify-self:start}
+.cam-btn.right{justify-self:end}
+.cam-shot{width:78px;height:78px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,.2);padding:0}
+.cam-shot:active{background:#fff}
+.cam-shot:disabled{opacity:.4}
+.cam button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -106,10 +159,10 @@ legend{padding:0;margin-bottom:10px}
     <h1>Visitenkarte zu Kontakt</h1>
     <p class="sub">Karte fotografieren, Angaben prüfen, im Telefonbuch speichern.</p>
     <div class="actions">
-      <label class="btn btn-main" for="cam">
+      <button class="btn btn-main" type="button" id="open">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
         Karte fotografieren
-      </label>
+      </button>
       <label class="btn btn-line" for="pick">Aus Fotos</label>
       <input id="cam" type="file" accept="image/*" capture="environment">
       <input id="pick" type="file" accept="image/*">
@@ -122,7 +175,7 @@ legend{padding:0;margin-bottom:10px}
   <section class="panel" aria-labelledby="l-photo">
     <p class="label" id="l-photo">Foto</p>
     <div class="shot"><i></i>
-      <div class="empty" id="empty">Karte flach auf den Tisch legen, gut ausleuchten und formatfüllend fotografieren. QR-Codes mit vCard werden auch erkannt.</div>
+      <div class="empty" id="empty">Die Kamera zeigt einen Rahmen in Kartengröße. Karte hineinlegen, auslösen, fertig. QR-Codes mit Kontaktdaten werden auch erkannt.</div>
       <img id="img" alt="Foto der Visitenkarte" hidden>
     </div>
     <div class="status" id="status" aria-live="polite">Die Texterkennung läuft direkt auf dem Handy.</div>
@@ -132,15 +185,16 @@ legend{padding:0;margin-bottom:10px}
       <p class="label lines-label">Erkannter Text</p>
       <p class="hint">Feld im Formular antippen, dann hier die passende Zeile. Sie wird in das Feld übernommen.</p>
       <div class="lines" id="lines"></div>
-      <button class="btn btn-ghost rot" type="button" id="rotate">Foto drehen und neu lesen</button>
+      <button class="btn btn-ghost" type="button" id="rotate">Foto drehen und neu lesen</button>
     </div>
   </section>
 
   <section class="panel" aria-labelledby="l-form">
     <p class="label" id="l-form">Kontakt</p>
     <form id="form" autocomplete="off">
+      <div class="notes" id="notes" aria-live="polite"></div>
       <fieldset>
-        <legend class="hint">Bitte kurz prüfen. Alles lässt sich vor dem Speichern ändern.</legend>
+        <legend class="hint">Grün markierte Felder sind geprüft, gelb markierte bitte kurz ansehen.</legend>
         <div class="row">
           <label class="f"><span>Vorname</span><input id="first" placeholder="Anna"></label>
           <label class="f"><span>Nachname</span><input id="last" placeholder="Müller"></label>
@@ -155,10 +209,10 @@ legend{padding:0;margin-bottom:10px}
       <fieldset>
         <div class="row tel">
           <label class="f"><span>Mobil</span><input id="cell" type="tel" inputmode="tel" placeholder="+49 171 2345678"></label>
-          <label class="f"><span>Telefon (Arbeit)</span><input id="work" type="tel" inputmode="tel" placeholder="+49 89 123456-0"></label>
+          <label class="f"><span>Telefon (Arbeit)</span><input id="work" type="tel" inputmode="tel" placeholder="+49 89 1234560"></label>
         </div>
         <div class="row tel">
-          <label class="f"><span>Fax</span><input id="fax" type="tel" inputmode="tel" placeholder="+49 89 123456-99"></label>
+          <label class="f"><span>Fax</span><input id="fax" type="tel" inputmode="tel" placeholder="+49 89 12345699"></label>
           <label class="f"><span>Web</span><input id="url" inputmode="url" autocapitalize="off" placeholder="www.beispiel.de"></label>
         </div>
         <label class="f"><span>E-Mail</span><input id="email" type="email" inputmode="email" autocapitalize="off" placeholder="anna.mueller@beispiel.de"></label>
@@ -183,19 +237,92 @@ legend{padding:0;margin-bottom:10px}
     </form>
   </section>
 </main>
-<p class="foot">Das Foto verlässt das Handy nicht. Beim ersten Mal lädt die App einmalig die Sprachdaten für die Texterkennung (ca. 3 MB).</p>
+
+<section class="panel learn" aria-labelledby="l-learn">
+  <p class="label" id="l-learn">Lernen &amp; Prüfen</p>
+  <div class="setgrid">
+    <div class="set">
+      <h2>Aus deinen Kontakten lernen</h2>
+      <p class="hint">Die App merkt sich Vor- und Nachnamen, Firmen, E-Mail-Domains und Orte aus deinen Kontakten und erkennt sie auf Karten sicherer. Jeder gespeicherte Kontakt kommt automatisch dazu. Alles bleibt auf diesem Gerät.</p>
+      <ol class="steps">
+        <li>Kontakte-App öffnen, oben links auf „Listen“.</li>
+        <li>„Alle Kontakte“ gedrückt halten, „Exportieren“, dann „In Dateien sichern“.</li>
+        <li>Hier die gespeicherte Datei laden.</li>
+      </ol>
+      <label class="btn btn-ghost" for="vcfIn">Kontakte-Datei laden (.vcf)</label>
+      <input id="vcfIn" type="file" accept=".vcf,text/vcard,text/x-vcard,text/directory">
+      <p class="hint" id="knowStats" aria-live="polite"></p>
+      <button class="link" type="button" id="knowClear">Gelerntes löschen</button>
+    </div>
+    <div class="set">
+      <h2>Adresse online prüfen</h2>
+      <label class="check"><input type="checkbox" id="osm"> <span>Straße, PLZ und Ort im Hintergrund mit OpenStreetMap abgleichen</span></label>
+      <p class="hint">Gesendet wird nur die Adresse, kein Foto und kein Name. Postleitzahlen und Telefonnummern prüft die App ohnehin direkt auf dem Handy.</p>
+    </div>
+    <div class="set">
+      <h2>KI-Erkennung (Claude)</h2>
+      <p class="hint">Liest schwierige Karten deutlich genauer. Dafür geht das Foto der Karte an Anthropic. Nötig ist ein eigener API-Schlüssel von console.anthropic.com. Pro gelesener Karte kostet das etwa 1 bis 2 Cent.</p>
+      <label class="f"><span>API-Schlüssel</span><input id="kiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…"></label>
+      <div class="seg" role="radiogroup" aria-label="Wann die KI hilft">
+        <label><input type="radio" name="kiMode" value="aus"> Aus</label>
+        <label><input type="radio" name="kiMode" value="zweifel"> Im Zweifel</label>
+        <label><input type="radio" name="kiMode" value="immer"> Immer</label>
+      </div>
+      <p class="hint" id="kiState">Der Schlüssel wird nur auf diesem Gerät gespeichert.</p>
+    </div>
+  </div>
+</section>
+
+<div class="foot">
+  <p>Ohne KI verlässt das Foto das Handy nicht. Beim ersten Mal lädt die App einmalig die Sprachdaten für die Texterkennung (ca. 3 MB).</p>
+  <p>Postleitzahlen: © OpenStreetMap-Mitwirkende (ODbL) und GovData. Vornamen: Faker (MIT). Telefonnummern: libphonenumber-js (MIT).</p>
+</div>
+</div>
+
+<div class="cam" id="camView" hidden role="dialog" aria-modal="true" aria-label="Kamera">
+  <video id="video" playsinline muted autoplay></video>
+  <div class="cam-frame" id="camFrame"><i></i></div>
+  <p class="cam-hint" id="camHint">Kamera wird gestartet …</p>
+  <label class="btn cam-sys" for="cam" id="camSys" hidden>Systemkamera öffnen</label>
+  <div class="cam-bar">
+    <button class="cam-btn" type="button" id="camClose">Abbrechen</button>
+    <button class="cam-shot" type="button" id="camShot" aria-label="Foto aufnehmen" disabled></button>
+    <button class="cam-btn right" type="button" id="camTurn">Hochformat</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="vendor/libphonenumber-max.js"></script>
 <script src="parser.js"></script>
+<script src="online.js"></script>
 <script>
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
-  const FIELDS = ['first', 'last', 'prefix', 'suffix', 'org', 'title', 'cell', 'work', 'fax', 'url', 'email', 'street', 'zip', 'city', 'country', 'note'];
-  let worker = null;
-  let busy = false;
+  const FIELDS = VK.FIELDS;
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* egal */ } },
+  };
+  const S = {
+    know: store.get('visit-wissen', null) || VK.emptyKnowledge(),
+    set: Object.assign({ osm: true, kiKey: '', kiMode: 'zweifel' }, store.get('visit-einstellungen', {})),
+    names: null, plz: null, meta: { ok: {}, check: {} },
+  };
+  let worker = null, phase = '', runId = 0, target = null, current = null;
+  const edited = new Set();
+
+  const dataReady = Promise.all([
+    fetch('data/namen.json').then(r => r.json()).then(j => { S.names = VK.makeNames(j); }).catch(() => {}),
+    fetch('data/plz.json').then(r => r.json()).then(j => { S.plz = j; }).catch(() => {}),
+  ]);
+  function ctx(extra) {
+    return Object.assign({ names: S.names, plz: S.plz, know: S.know, phone: window.libphonenumber || null }, extra || {});
+  }
+
+  // ---------- Anzeige ----------
 
   function setStatus(text, pct) {
     $('status').textContent = text;
@@ -211,48 +338,90 @@ legend{padding:0;margin-bottom:10px}
     d.textContent = text;
     $('msg').appendChild(d);
   }
-  function fill(data) {
-    FIELDS.forEach(k => { $(k).value = data[k] || ''; });
+  function setNote(key, text, kind) {
+    let n = document.querySelector('.note[data-k="' + key + '"]');
+    if (!text) { if (n) n.remove(); return; }
+    if (!n) { n = document.createElement('p'); n.dataset.k = key; $('notes').appendChild(n); }
+    n.className = 'note ' + (kind || '');
+    n.textContent = text;
+  }
+  function clearNotes() { $('notes').innerHTML = ''; }
+
+  // Markierungen „geprüft“ / „bitte prüfen“ an den Feldern
+  FIELDS.forEach(k => {
+    const span = $(k).previousElementSibling;
+    const t = document.createElement('em');
+    t.className = 'tag'; t.id = 't-' + k;
+    span.appendChild(t);
+  });
+  function tags(meta) {
+    FIELDS.forEach(k => {
+      const st = edited.has(k) || !$(k).value.trim() ? '' : meta.ok[k] ? 'ok' : meta.check[k] ? 'check' : '';
+      $('t-' + k).className = 'tag ' + st;
+      $('t-' + k).textContent = st === 'ok' ? 'geprüft' : st === 'check' ? 'bitte prüfen' : '';
+      $(k).classList.toggle('check', st === 'check');
+    });
+  }
+  // mode: 'all' überschreibt alles, 'unedited' lässt eigene Änderungen stehen, 'empty' füllt nur leere Felder
+  function fill(f, meta, mode) {
+    FIELDS.forEach(k => {
+      if (mode !== 'all' && edited.has(k)) return;
+      if (mode === 'empty' && $(k).value.trim()) return;
+      $(k).value = f[k] || '';
+    });
+    S.meta = meta || { ok: {}, check: {} };
+    tags(S.meta);
   }
   function read() {
     const o = {};
     FIELDS.forEach(k => { o[k] = $(k).value.trim(); });
     return o;
   }
+  FIELDS.forEach(k => {
+    $(k).addEventListener('input', () => { edited.add(k); tags(S.meta); });
+    $(k).addEventListener('focus', () => {
+      if (target) target.classList.remove('target');
+      target = $(k);
+      target.classList.add('target');
+    });
+  });
 
+  // ---------- Bilder ----------
+
+  function size(src) {
+    return { w: src.naturalWidth || src.videoWidth || src.width, h: src.naturalHeight || src.videoHeight || src.height };
+  }
   function loadImage(file) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = () => resolve({ img, url });
+      img.onload = () => resolve(img);
       img.onerror = () => reject(new Error('Bild konnte nicht geöffnet werden.'));
       img.src = url;
     });
   }
-
   function rotate(src, deg) {
     const c = document.createElement('canvas');
     const q = deg % 180 !== 0;
     c.width = q ? src.height : src.width;
     c.height = q ? src.width : src.height;
-    const ctx = c.getContext('2d');
-    ctx.translate(c.width / 2, c.height / 2);
-    ctx.rotate(deg * Math.PI / 180);
-    ctx.drawImage(src, -src.width / 2, -src.height / 2);
+    const g = c.getContext('2d');
+    g.translate(c.width / 2, c.height / 2);
+    g.rotate(deg * Math.PI / 180);
+    g.drawImage(src, -src.width / 2, -src.height / 2);
     return c;
   }
-
-  function toCanvas(img, maxSide, gray) {
-    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
-    const up = Math.max(img.naturalWidth, img.naturalHeight) < 1200 ? 1600 / Math.max(img.naturalWidth, img.naturalHeight) : 1;
-    const s = scale < 1 ? scale : up;
+  function toCanvas(src, maxSide, gray, noUpscale) {
+    const { w, h } = size(src);
+    const long = Math.max(w, h);
+    const s = long > maxSide ? maxSide / long : (!noUpscale && long < 1200 ? 1600 / long : 1);
     const c = document.createElement('canvas');
-    c.width = Math.round(img.naturalWidth * s);
-    c.height = Math.round(img.naturalHeight * s);
-    const ctx = c.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0, c.width, c.height);
+    c.width = Math.round(w * s);
+    c.height = Math.round(h * s);
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(src, 0, 0, c.width, c.height);
     if (gray) {
-      const d = ctx.getImageData(0, 0, c.width, c.height);
+      const d = g.getImageData(0, 0, c.width, c.height);
       const p = d.data;
       // Graustufen, dann Helligkeit auf den vollen Bereich strecken (dunkle Fotos, farbige Karten)
       const hist = new Uint32Array(256);
@@ -270,21 +439,31 @@ legend{padding:0;margin-bottom:10px}
         const v = Math.max(0, Math.min(255, (p[i] - lo) * 255 / span));
         p[i] = p[i + 1] = p[i + 2] = v;
       }
-      ctx.putImageData(d, 0, 0);
+      g.putImageData(d, 0, 0);
     }
     return c;
   }
+  function jpegBase64(src, maxSide) {
+    return toCanvas(src, maxSide, false, true).toDataURL('image/jpeg', 0.85).split(',')[1];
+  }
+  function preview(src) {
+    $('img').src = src instanceof HTMLImageElement ? src.src : toCanvas(src, 1400, false, true).toDataURL('image/jpeg', 0.85);
+    $('img').hidden = false;
+    $('empty').hidden = true;
+  }
 
-  function findQR(img) {
+  function findQR(src) {
     if (typeof jsQR !== 'function') return null;
-    for (const size of [1000, 1600, 600]) {
-      const c = toCanvas(img, size, false);
+    for (const s of [1000, 1600, 600]) {
+      const c = toCanvas(src, s, false, true);
       const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
       const r = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
       if (r && r.data) return r.data;
     }
     return null;
   }
+
+  // ---------- Texterkennung ----------
 
   async function getWorker() {
     if (worker) return worker;
@@ -299,20 +478,26 @@ legend{padding:0;margin-bottom:10px}
     return worker;
   }
 
-  let lastImg = null, lastRot = 0, phase = '';
-  let target = null;
+  function linesOf(data) {
+    const out = [];
+    (data.blocks || []).forEach(b => (b.paragraphs || []).forEach(p => (p.lines || []).forEach(l => {
+      const h = l.rowAttributes && l.rowAttributes.row_height ? l.rowAttributes.row_height : (l.bbox ? l.bbox.y1 - l.bbox.y0 : 0);
+      out.push({ text: (l.text || '').trim(), h });
+    })));
+    return out;
+  }
 
   // Liest den Text; liegt die Karte quer im Foto, werden die anderen Ausrichtungen probiert
-  async function ocr(img, order) {
+  async function ocr(src, order) {
     const w = await getWorker();
-    const base = toCanvas(img, 2400, true);
+    const base = toCanvas(src, 2400, true);
     let best = null;
     for (const deg of order) {
       phase = deg ? ' (gedreht)' : '';
-      const { data } = await w.recognize(deg ? rotate(base, deg) : base);
-      const words = (data.text.match(/[A-Za-zÄÖÜäöüß@]{3,}/g) || []).length;
+      const { data } = await w.recognize(deg ? rotate(base, deg) : base, {}, { text: true, blocks: true, hocr: false, tsv: false });
+      const words = ((data.text || '').match(/[A-Za-zÄÖÜäöüß@]{3,}/g) || []).length;
       const score = data.confidence + Math.min(words, 15);
-      if (!best || score > best.score) best = { score, text: (data.text || '').trim(), deg, conf: data.confidence };
+      if (!best || score > best.score) best = { score, deg, conf: data.confidence, text: (data.text || '').trim(), lines: linesOf(data) };
       if (data.confidence >= 72 && words >= 4) break;
     }
     phase = '';
@@ -329,96 +514,298 @@ legend{padding:0;margin-bottom:10px}
       b.addEventListener('click', () => {
         const el = target || $('note');
         el.value = el.id === 'note' && el.value ? el.value + '\n' + l : l;
+        edited.add(el.id);
+        tags(S.meta);
         b.classList.add('used');
-        el.classList.add('target');
       });
       box.appendChild(b);
     });
     $('rawbox').hidden = false;
   }
 
-  function apply(text, qr) {
-    showLines(text || '(kein Text erkannt)');
-    if (!text) {
-      setStatus('Kein Text erkannt.');
-      showMsg('Auf dem Foto war kein Text lesbar. Bitte näher ran, gerade halten und auf gutes Licht achten.', 'err');
-      return;
-    }
-    const parsed = VK.parse(text);
-    if (qr && /^https?:\/\//i.test(qr) && !parsed.url) parsed.url = qr;
-    fill(parsed);
-    const found = ['first', 'last', 'email', 'cell', 'work', 'org', 'street'].filter(k => parsed[k]).length;
-    setStatus('Fertig. Bitte die Felder kurz prüfen.');
-    showMsg(found >= 3 ? 'Angaben übernommen. Falsche Felder korrigieren oder unten eine erkannte Zeile antippen.' :
-      'Nur wenige Angaben erkannt. Unten steht alles, was gelesen wurde: Feld antippen, dann die passende Zeile.', found >= 3 ? 'ok' : 'err');
-  }
+  // ---------- Ablauf ----------
 
-  async function handle(file) {
-    if (!file || busy) return;
-    busy = true;
-    showMsg('');
+  function kiMode() { return S.set.kiKey ? S.set.kiMode : 'aus'; }
+
+  async function analyse(src, opts) {
+    const id = ++runId;
+    current = { src, camera: !!(opts && opts.camera), rot: 0, text: '', kiApplied: false };
+    edited.clear();
+    showMsg(''); clearNotes();
+    fill({}, { ok: {}, check: {} }, 'all');
+    preview(src);
     try {
-      const { img, url } = await loadImage(file);
-      lastImg = img;
-      $('img').src = url;
-      $('img').hidden = false;
-      $('empty').hidden = true;
-
       setStatus('Suche QR-Code …', 0.01);
-      const qr = findQR(img);
+      const qr = findQR(src);
       if (qr && /BEGIN:VCARD/i.test(qr)) {
-        fill(VK.parseVCard(qr));
+        await dataReady;
+        const r = VK.validate(VK.parseVCard(qr), ctx());
+        fill(r.fields, r.meta, 'all');
         showLines(qr.replace(/\r/g, ''));
         setStatus('QR-Code mit Kontaktdaten gelesen.');
         showMsg('Alle Angaben stammen aus dem QR-Code. Jetzt nur noch speichern.', 'ok');
         return;
       }
 
-      const best = await ocr(img, [0, 90, 270, 180]);
-      lastRot = best.deg;
-      apply(best.text, qr);
+      const mode = kiMode();
+      let ki = null;
+      if (mode === 'immer') ki = runKI(id, src, '', null);
+      await dataReady;
+      const best = await ocr(src, current.camera ? [0, 180] : [0, 90, 270, 180]);
+      if (id !== runId) return;
+      current.rot = best.deg; current.text = best.text;
+      showLines(best.text || '(kein Text erkannt)');
+      const r = VK.analyze(best.text, ctx({ lines: best.lines }));
+      fill(r.fields, r.meta, current.kiApplied ? 'empty' : 'all');
+      setStatus('Fertig. Bitte die Felder kurz prüfen.');
+      report(r.fields);
+      const d = VK.doubts(r.fields, r.meta, best.conf);
+      if (mode === 'zweifel' && d.length) ki = runKI(id, src, best.text, d);
+      else if (mode === 'aus' && d.length) setNote('ki', 'Unsicher: ' + d.join(', ') + '. Die KI-Erkennung unter „Lernen & Prüfen“ kann helfen.', '');
+      if (ki) await ki;
+      if (id !== runId) return;
+      await checkAddress(id);
     } catch (e) {
+      if (id !== runId) return;
       setStatus('');
       showMsg(e.message || String(e), 'err');
-    } finally {
-      busy = false;
+    }
+  }
+
+  function report(f) {
+    const found = ['first', 'last', 'email', 'cell', 'work', 'org', 'street'].filter(k => f[k]).length;
+    let text = found >= 3 ? 'Angaben übernommen. Gelb markierte Felder bitte kurz ansehen.' :
+      'Nur wenige Angaben erkannt. Feld antippen, dann unten die passende Zeile.';
+    const dup = VK.findKnown(S.know, f);
+    if (dup) text += ' Hinweis: „' + dup + '“ ist schon in deinen Kontakten.';
+    showMsg(text, found >= 3 ? 'ok' : 'err');
+  }
+
+  const simple = s => String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, '');
+
+  async function runKI(id, src, ocrText, reasons) {
+    setNote('ki', 'KI liest die Karte' + (reasons ? ', weil unsicher: ' + reasons.join(', ') : '') + ' …', 'busy');
+    try {
+      const ai = await ONLINE.kiExtract({ apiKey: S.set.kiKey, imageBase64: jpegBase64(src, 1568), ocrText });
+      if (id !== runId) return;
+      await dataReady;
+      const cur = read();
+      const aiVals = Object.values(ai || {}).map(simple).filter(Boolean);
+      const m = {};
+      FIELDS.forEach(k => {
+        const v = String((ai && ai[k]) || '').trim();
+        if (k === 'note') m[k] = cur[k];
+        else if (v) m[k] = v;
+        else m[k] = cur[k] && !aiVals.includes(simple(cur[k])) ? cur[k] : '';
+      });
+      const r = VK.validate(m, ctx());
+      current.kiApplied = true;
+      fill(r.fields, r.meta, 'unedited');
+      report(r.fields);
+      setNote('ki', 'KI-Ergebnis übernommen.', 'ok');
+    } catch (e) {
+      if (id !== runId) return;
+      setNote('ki', e.message || String(e), 'err');
+    }
+  }
+
+  async function checkAddress(id) {
+    if (!S.set.osm) return;
+    const f = read();
+    if (!f.street || (!f.zip && !f.city)) return;
+    setNote('adr', 'Adresse wird mit OpenStreetMap abgeglichen …', 'busy');
+    try {
+      const a = await ONLINE.checkAddress(f);
+      if (id !== runId) return;
+      if (!a) {
+        S.meta.check.street = true; delete S.meta.ok.street;
+        tags(S.meta);
+        setNote('adr', 'Adresse bei OpenStreetMap nicht gefunden. Bitte Straße, PLZ und Ort prüfen.', 'err');
+        return;
+      }
+      const adopt = VK.adoptAddress(f, a, S.meta);
+      ['street', 'zip', 'city'].forEach(k => { if (adopt[k] && !edited.has(k)) $(k).value = adopt[k]; });
+      const now = read();
+      if (adopt.street || VK.sim(now.street.replace(/\s\d.*$/, ''), a.road) >= 0.7) { S.meta.ok.street = true; delete S.meta.check.street; }
+      if (a.zip && a.zip === now.zip) { S.meta.ok.zip = true; delete S.meta.check.zip; }
+      if (a.city && VK.sim(a.city, now.city) >= 0.75) { S.meta.ok.city = true; delete S.meta.check.city; }
+      tags(S.meta);
+      setNote('adr', 'Adresse bei OpenStreetMap gefunden.', 'ok');
+    } catch (e) {
+      if (id !== runId) return;
+      setNote('adr', 'Adressprüfung gerade nicht möglich.', '');
     }
   }
 
   $('rotate').addEventListener('click', async () => {
-    if (!lastImg || busy) return;
-    busy = true;
+    if (!current) return;
+    const id = ++runId;
     showMsg('');
     try {
-      lastRot = (lastRot + 90) % 360;
-      const best = await ocr(lastImg, [lastRot]);
-      apply(best.text, null);
+      current.rot = (current.rot + 90) % 360;
+      const best = await ocr(current.src, [current.rot]);
+      if (id !== runId) return;
+      current.text = best.text;
+      showLines(best.text || '(kein Text erkannt)');
+      const r = VK.analyze(best.text, ctx({ lines: best.lines }));
+      fill(r.fields, r.meta, 'unedited');
+      setStatus('Fertig. Bitte die Felder kurz prüfen.');
+      report(r.fields);
     } catch (e) {
       setStatus('');
       showMsg(e.message || String(e), 'err');
-    } finally {
-      busy = false;
     }
   });
 
-  FIELDS.forEach(k => $(k).addEventListener('focus', () => {
-    if (target) target.classList.remove('target');
-    target = $(k);
-    target.classList.add('target');
+  ['cam', 'pick'].forEach(id => $(id).addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    closeCamera();
+    try { analyse(await loadImage(file), { camera: false }); }
+    catch (err) { showMsg(err.message, 'err'); }
   }));
 
-  ['cam', 'pick'].forEach(id => $(id).addEventListener('change', e => {
-    handle(e.target.files && e.target.files[0]);
+  // ---------- Kamera mit Rahmen ----------
+
+  let stream = null, portrait = false;
+  function layoutFrame() {
+    const v = $('camView');
+    const W = v.clientWidth, H = v.clientHeight;
+    const top = 70, bottom = 140;
+    const availH = Math.max(120, H - top - bottom), availW = W * 0.9;
+    const ratio = portrait ? 55 / 85 : 85 / 55;
+    let w = availW, h = w / ratio;
+    if (h > availH) { h = availH; w = h * ratio; }
+    const f = $('camFrame');
+    f.style.width = w + 'px'; f.style.height = h + 'px';
+    f.style.left = (W - w) / 2 + 'px'; f.style.top = top + (availH - h) / 2 + 'px';
+  }
+  function tuneTrack(track) {
+    try {
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      const adv = {};
+      if (caps.focusMode && caps.focusMode.indexOf('continuous') >= 0) adv.focusMode = 'continuous';
+      // etwas Zoom, damit man nicht zu nah ran muss (sonst stellt die Kamera nicht scharf)
+      if (caps.zoom && caps.zoom.max >= 1.6) adv.zoom = Math.min(2, caps.zoom.max);
+      if (Object.keys(adv).length) track.applyConstraints({ advanced: [adv] }).catch(() => {});
+    } catch (e) { /* nicht unterstützt */ }
+  }
+  async function openCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('cam').click(); return; }
+    $('camView').hidden = false;
+    document.body.classList.add('noscroll');
+    $('camShot').disabled = true;
+    $('camSys').hidden = true;
+    $('camHint').textContent = 'Kamera wird gestartet …';
+    layoutFrame();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false,
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } } });
+      if ($('camView').hidden) { closeCamera(); return; }
+      const v = $('video');
+      v.srcObject = stream;
+      await v.play();
+      tuneTrack(stream.getVideoTracks()[0]);
+      $('camHint').textContent = 'Karte in den Rahmen legen. Gutes Licht, Handy ruhig halten.';
+      $('camShot').disabled = false;
+      $('camShot').focus();
+    } catch (e) {
+      $('camHint').textContent = 'Kein Zugriff auf die Kamera. Bitte für diese Seite erlauben oder die Systemkamera nutzen.';
+      $('camSys').hidden = false;
+    }
+  }
+  function closeCamera() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    $('video').srcObject = null;
+    $('camView').hidden = true;
+    document.body.classList.remove('noscroll');
+  }
+  function shoot() {
+    const v = $('video');
+    if (!v.videoWidth) return;
+    // Rahmen auf dem Bildschirm in Bildpunkte des Videos umrechnen (Video füllt den Bildschirm, Ränder abgeschnitten)
+    const vr = v.getBoundingClientRect(), fr = $('camFrame').getBoundingClientRect();
+    const scale = Math.max(vr.width / v.videoWidth, vr.height / v.videoHeight);
+    const ox = vr.left + (vr.width - v.videoWidth * scale) / 2, oy = vr.top + (vr.height - v.videoHeight * scale) / 2;
+    let sx = (fr.left - ox) / scale, sy = (fr.top - oy) / scale, sw = fr.width / scale, sh = fr.height / scale;
+    const mx = sw * 0.04, my = sh * 0.04;
+    sx = Math.max(0, sx - mx); sy = Math.max(0, sy - my);
+    sw = Math.min(v.videoWidth - sx, sw + 2 * mx); sh = Math.min(v.videoHeight - sy, sh + 2 * my);
+    const c = document.createElement('canvas');
+    c.width = Math.round(sw); c.height = Math.round(sh);
+    c.getContext('2d').drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    closeCamera();
+    analyse(c, { camera: true });
+  }
+  $('open').addEventListener('click', openCamera);
+  $('camClose').addEventListener('click', closeCamera);
+  $('camShot').addEventListener('click', shoot);
+  $('camTurn').addEventListener('click', () => {
+    portrait = !portrait;
+    $('camTurn').textContent = portrait ? 'Querformat' : 'Hochformat';
+    layoutFrame();
+  });
+  window.addEventListener('resize', () => { if (!$('camView').hidden) layoutFrame(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('camView').hidden) closeCamera(); });
+
+  // ---------- Lernen & Prüfen ----------
+
+  function saveKnow() { return store.set('visit-wissen', S.know); }
+  function renderKnow() {
+    const s = VK.knowledgeStats(S.know);
+    $('knowStats').textContent = s.contacts
+      ? 'Gelernt aus ' + s.contacts + ' Kontakten: ' + s.first + ' Vornamen, ' + s.orgs + ' Firmen, ' + s.places + ' Orte.'
+      : 'Noch nichts gelernt.';
+    $('knowClear').hidden = !s.contacts;
+  }
+  $('vcfIn').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
     e.target.value = '';
-  }));
+    if (!file) return;
+    $('knowStats').textContent = 'Lese Kontakte …';
+    try {
+      const list = VK.parseVCards(await file.text());
+      if (!list.length) { $('knowStats').textContent = 'In der Datei wurden keine Kontakte gefunden.'; return; }
+      list.forEach(c => VK.learn(S.know, c));
+      if (!saveKnow()) { $('knowStats').textContent = 'Speichern auf dem Gerät nicht möglich (privater Modus?).'; return; }
+      renderKnow();
+      $('knowStats').textContent = list.length + ' Kontakte gelesen. ' + $('knowStats').textContent;
+    } catch (err) {
+      $('knowStats').textContent = 'Die Datei konnte nicht gelesen werden.';
+    }
+  });
+  $('knowClear').addEventListener('click', () => {
+    S.know = VK.emptyKnowledge();
+    store.del('visit-wissen');
+    renderKnow();
+  });
+
+  function saveSettings() { store.set('visit-einstellungen', S.set); renderKI(); }
+  function renderKI() {
+    $('kiState').textContent = S.set.kiKey
+      ? (S.set.kiMode === 'aus' ? 'Schlüssel gespeichert, KI ist aus.' : 'KI hilft ' + (S.set.kiMode === 'immer' ? 'bei jeder Karte.' : 'nur, wenn die App unsicher ist.')) + ' Der Schlüssel liegt nur auf diesem Gerät.'
+      : 'Ohne Schlüssel bleibt die KI aus. Der Schlüssel wird nur auf diesem Gerät gespeichert.';
+  }
+  $('osm').checked = !!S.set.osm;
+  $('osm').addEventListener('change', () => { S.set.osm = $('osm').checked; saveSettings(); });
+  $('kiKey').value = S.set.kiKey || '';
+  $('kiKey').addEventListener('change', () => { S.set.kiKey = $('kiKey').value.trim(); saveSettings(); });
+  document.querySelectorAll('input[name=kiMode]').forEach(r => {
+    r.checked = r.value === S.set.kiMode;
+    r.addEventListener('change', () => { if (r.checked) { S.set.kiMode = r.value; saveSettings(); } });
+  });
+  renderKnow();
+  renderKI();
+
+  // ---------- Speichern ----------
 
   function vcardFile() {
     const f = read();
     const name = ([f.first, f.last].filter(Boolean).join(' ') || f.org || 'Kontakt').replace(/[\\/:*?"<>|]/g, '');
-    const text = VK.buildVCard(f);
-    return { text, name: name + '.vcf' };
+    return { text: VK.buildVCard(f), name: name + '.vcf' };
   }
-
   function check() {
     const f = read();
     if (!f.first && !f.last && !f.org) {
@@ -428,10 +815,16 @@ legend{padding:0;margin-bottom:10px}
     }
     return true;
   }
+  function learnCurrent() {
+    VK.learn(S.know, read());
+    saveKnow();
+    renderKnow();
+  }
 
   $('form').addEventListener('submit', e => {
     e.preventDefault();
     if (!check()) return;
+    learnCurrent();
     openContact();
   });
 
@@ -453,12 +846,9 @@ legend{padding:0;margin-bottom:10px}
     location.href = 'data:text/x-vcard;charset=utf-8,' + encodeURIComponent(text);
   }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
-
   $('share').addEventListener('click', async () => {
     if (!check()) return;
+    learnCurrent();
     const { text, name } = vcardFile();
     const file = new File([text], name, { type: 'text/vcard' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -472,6 +862,10 @@ legend{padding:0;margin-bottom:10px}
     a.click();
     a.remove();
   });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 })();
 </script>
 </body>
